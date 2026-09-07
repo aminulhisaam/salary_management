@@ -1,0 +1,6 @@
+employee_code,first_name,last_name,email,department,country,job_title,band,hire_date,status,salary_amount,salary_currency,effective_date
+IMP-00001,Ada,Lovelace,ada.lovelace@example.com,Engineering,United States,Software Engineer,L3,2021-06-15,active,85000.50,USD,2021-06-15
+IMP-00002,Grace,Hopper,grace.hopper@example.com,Product,United States,Product Manager,L4,2020-03-10,active,110000.00,USD,2020-03-10
+IMP-00003,Arjun,Mehta,arjun.mehta@example.com,Engineering,India,Backend Engineer,L3,2022-01-20,active,1450000.00,INR,2022-01-20
+IMP-00004,Sofia,Weber,sofia.weber@example.com,Finance,Germany,Financial Analyst,L2,2023-02-01,active,58000.00,EUR,2023-02-01
+IMP-00005,Lucas,Silva,lucas.silva@example.com,Sales,Brazil,Account Executive,L3,2021-09-05,inactive,98000.00,BRL,2021-09-05
