@@ -71,6 +71,13 @@ after the token expires instead of being silently refreshed — acceptable for a
 HR tool, and a refresh-token flow is a contained addition later since `get_current_user`
 is the single seam all authorization already flows through.
 
+## Frontend token storage and component library
+The frontend stores the v1 access token in `localStorage` to keep the single-token flow
+simple. This leaves the token exposed to XSS, unlike an httpOnly cookie, but avoids cookie
+and refresh-token complexity that is not justified for v1; revisit this as part of auth
+hardening. MUI is the frontend component library, providing accessible forms and common
+application-shell controls without maintaining a custom component system.
+
 ## Single `hr_admin` role now, `role` column reserved for tiering later
 All authenticated users currently get identical permissions. The `role` column exists on
 `users` from day one specifically so that adding a second role (e.g. read-only Viewer) is

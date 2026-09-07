@@ -1,0 +1,22 @@
+{
+  "departments": [
+    "Engineering",
+    "Sales",
+    "Marketing",
+    "HR",
+    "Finance",
+    "Operations",
+    "Product",
+    "Customer Support"
+  ],
+  "countries": {
+    "United States": "USD",
+    "India": "INR",
+    "United Kingdom": "GBP",
+    "Germany": "EUR",
+    "Singapore": "SGD",
+    "Brazil": "BRL"
+  },
+  "bands": ["L1", "L2", "L3", "L4", "L5", "L6", "L7"],
+  "statuses": ["active", "inactive"]
+}
