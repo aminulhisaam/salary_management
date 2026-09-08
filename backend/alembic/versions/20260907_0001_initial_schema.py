@@ -18,6 +18,7 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
+    is_sqlite = op.get_bind().dialect.name == "sqlite"
     op.create_table(
         "users",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
@@ -48,7 +49,6 @@ def upgrade() -> None:
         sa.Column("current_salary_id", sa.Integer(), nullable=True),
         sa.Column("created_at", sa.TIMESTAMP(), nullable=False),
         sa.Column("updated_at", sa.TIMESTAMP(), nullable=False),
-        sa.ForeignKeyConstraint(["current_salary_id"], ["salaries.id"]),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("employee_code"),
         sa.UniqueConstraint("email"),
@@ -80,6 +80,22 @@ def upgrade() -> None:
         ["employee_id"],
         unique=False,
     )
+    if is_sqlite:
+        with op.batch_alter_table("employees") as batch_op:
+            batch_op.create_foreign_key(
+                "fk_employees_current_salary_id_salaries",
+                "salaries",
+                ["current_salary_id"],
+                ["id"],
+            )
+    else:
+        op.create_foreign_key(
+            "fk_employees_current_salary_id_salaries",
+            "employees",
+            "salaries",
+            ["current_salary_id"],
+            ["id"],
+        )
     op.create_index(
         "ix_salaries_employee_id_effective_date",
         "salaries",
@@ -89,6 +105,11 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    if op.get_bind().dialect.name == "sqlite":
+        with op.batch_alter_table("employees") as batch_op:
+            batch_op.drop_constraint("fk_employees_current_salary_id_salaries", type_="foreignkey")
+    else:
+        op.drop_constraint("fk_employees_current_salary_id_salaries", "employees", type_="foreignkey")
     op.drop_index("ix_salaries_employee_id_effective_date", table_name="salaries")
     op.drop_index(op.f("ix_salaries_employee_id"), table_name="salaries")
     op.drop_index(op.f("ix_salaries_effective_date"), table_name="salaries")

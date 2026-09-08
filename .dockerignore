@@ -1,0 +1,12 @@
+.git
+.venv
+**/__pycache__/
+**/*.py[cod]
+backend/.venv
+backend/.pytest_cache
+backend/salary_management.db
+frontend/node_modules
+frontend/dist
+frontend/.env
+backend/.env
+*.db

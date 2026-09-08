@@ -94,3 +94,17 @@ The core insights dashboard (headcount/salary by department and country) doesn't
 them. A pay-equity cut by gender is listed as a possible enhancement, not core scope; if
 undertaken, it's a single additive column plus migration on `employees`, not a schema
 redesign — deferred rather than built speculatively into the base schema.
+
+## PostgreSQL-compatible circular salary reference migration
+`employees.current_salary_id` references `salaries.id`, while `salaries.employee_id`
+references `employees.id`. SQLite permits the forward reference in a `CREATE TABLE`, but
+PostgreSQL requires the referenced `salaries` table to exist first. The initial migration
+therefore creates `employees`, creates `salaries`, and then adds the
+`employees.current_salary_id` foreign key. This preserves the schema exactly while keeping
+the SQLite-to-PostgreSQL switch configuration-only at runtime.
+
+## Public frontend origin configured through CORS_ORIGINS
+The API allows browser requests only from the comma-separated origins in `CORS_ORIGINS`.
+It defaults to the local Vite origin and is set to the deployed Vercel URL in production.
+This keeps deployment URLs configuration-driven and avoids the unsafe wildcard CORS policy
+that would otherwise expose the public API to requests from arbitrary browser origins.

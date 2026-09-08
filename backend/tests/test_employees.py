@@ -1,25 +1,21 @@
 from datetime import date
-from pathlib import Path
-
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from alembic import command
-from alembic.config import Config
-from app.config import settings
 from app.database import get_db
 from app.main import app
+from tests.db_support import database_url_for_tests, engine_options_for_tests, migrate_test_database
 
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    database_url = f"sqlite:///{tmp_path / 'employees.db'}"
-    monkeypatch.setattr(settings, "database_url", database_url)
-    command.upgrade(Config(str(Path(__file__).parents[1] / "alembic.ini")), "head")
+    database_url = database_url_for_tests(tmp_path, "employees.db")
+    monkeypatch.setattr("app.config.settings.database_url", database_url)
+    migrate_test_database(database_url)
 
-    engine = create_engine(database_url, connect_args={"check_same_thread": False})
+    engine = create_engine(database_url, **engine_options_for_tests(database_url))
     session_local = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
     def override_get_db():

@@ -1,17 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config import settings
 from app.routers.analytics import router as analytics_router
 from app.routers.auth import router as auth_router
 from app.routers.employees import router as employees_router
 
 app = FastAPI(title="Salary Management API")
 
-# CORS is wide open for local dev; tighten to the deployed frontend origin
-# via an env var once a real deploy target is chosen.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origin_list,
     allow_methods=["*"],
     allow_headers=["*"],
 )

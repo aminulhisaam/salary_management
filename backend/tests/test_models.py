@@ -3,24 +3,23 @@ from decimal import Decimal
 
 from sqlalchemy import create_engine, event, inspect, text
 
-from alembic import command
-from alembic.config import Config
 from app.config import settings
 from app.models import Employee, Salary, User
+from tests.db_support import database_url_for_tests, engine_options_for_tests, migrate_test_database
 
 
 def test_initial_migration_creates_schema_and_supports_salary_references(tmp_path, monkeypatch):
-    database_url = f"sqlite:///{tmp_path / 'salary_management.db'}"
+    database_url = database_url_for_tests(tmp_path, "salary_management.db")
     monkeypatch.setattr(settings, "database_url", database_url)
+    migrate_test_database(database_url)
 
-    alembic_config = Config("alembic.ini")
-    command.upgrade(alembic_config, "head")
+    engine = create_engine(database_url, **engine_options_for_tests(database_url))
 
-    engine = create_engine(database_url)
+    if database_url.startswith("sqlite"):
 
-    @event.listens_for(engine, "connect")
-    def enable_foreign_keys(dbapi_connection, _connection_record):
-        dbapi_connection.execute("PRAGMA foreign_keys=ON")
+        @event.listens_for(engine, "connect")
+        def enable_foreign_keys(dbapi_connection, _connection_record):
+            dbapi_connection.execute("PRAGMA foreign_keys=ON")
 
     now = datetime(2026, 9, 7)
     with engine.begin() as connection:
@@ -68,7 +67,8 @@ def test_initial_migration_creates_schema_and_supports_salary_references(tmp_pat
             .values(current_salary_id=salary_result.inserted_primary_key[0])
         )
 
-        assert connection.execute(text("PRAGMA foreign_key_check")).all() == []
+        if database_url.startswith("sqlite"):
+            assert connection.execute(text("PRAGMA foreign_key_check")).all() == []
 
     inspector = inspect(engine)
     foreign_keys = inspector.get_foreign_keys("salaries")
@@ -85,10 +85,11 @@ def test_initial_migration_creates_schema_and_supports_salary_references(tmp_pat
     )
     assert composite_index["column_names"] == ["employee_id", "effective_date"]
 
-    with engine.connect() as connection:
-        index_xinfo = (
-            connection.execute(text("PRAGMA index_xinfo('ix_salaries_employee_id_effective_date')"))
-            .mappings()
-            .all()
-        )
-    assert [row["desc"] for row in index_xinfo if row["key"] == 1] == [0, 1]
+    if database_url.startswith("sqlite"):
+        with engine.connect() as connection:
+            index_xinfo = (
+                connection.execute(text("PRAGMA index_xinfo('ix_salaries_employee_id_effective_date')"))
+                .mappings()
+                .all()
+            )
+        assert [row["desc"] for row in index_xinfo if row["key"] == 1] == [0, 1]

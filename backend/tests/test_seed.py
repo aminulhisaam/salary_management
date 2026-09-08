@@ -4,10 +4,8 @@ from pathlib import Path
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
-from alembic import command
-from alembic.config import Config
-from app.config import settings
 from app.models import Employee, Salary
+from tests.db_support import database_url_for_tests, migrate_test_database
 
 seed_module_path = Path(__file__).parents[2] / "seed" / "seed.py"
 seed_module_spec = importlib.util.spec_from_file_location("seed_script", seed_module_path)
@@ -18,11 +16,9 @@ seed_database = seed_module.seed_database
 
 
 def test_seed_populates_employees_and_salary_history(tmp_path, monkeypatch):
-    database_url = f"sqlite:///{tmp_path / 'seed.db'}"
-    monkeypatch.setattr(settings, "database_url", database_url)
-
-    alembic_config = Config(str(Path(__file__).parents[1] / "alembic.ini"))
-    command.upgrade(alembic_config, "head")
+    database_url = database_url_for_tests(tmp_path, "seed.db")
+    monkeypatch.setattr("app.config.settings.database_url", database_url)
+    migrate_test_database(database_url)
     assert seed_database() == 10_000
 
     engine = create_engine(database_url)
